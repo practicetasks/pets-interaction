@@ -1,9 +1,9 @@
 package com.practice.exceptionhandlers.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.practice.exceptionhandlers.exception.IncorrectCountException;
+import com.practice.exceptionhandlers.utils.ErrorResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -20,12 +20,28 @@ public class DogsInteractionController {
 
     @GetMapping("/pet")
     public Map<String, String> pet(@RequestParam(required = false) final Integer count) {
+        if (count == null) {
+            throw new IncorrectCountException("Параметр count равен null.");
+        }
+        if (count <= 0) {
+            throw new IncorrectCountException("Параметр count имеет отрицательное значение.");
+        }
+
         happiness += count;
         return Map.of("action", "Вильнул хвостом. ".repeat(count));
     }
 
+
     @GetMapping("/happiness")
     public Map<String, Integer> happiness() {
         return Map.of("happiness", happiness);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handle(final IncorrectCountException e) {
+        return new ErrorResponse(
+                "Ошибка с параметром count.", e.getMessage()
+        );
     }
 }
